@@ -1,2 +1,3 @@
-ns-3-dev
-!ns-3-dev/scratch/project.cc
+ns-3-dev/*
+!ns-3-dev/scratch/
+
