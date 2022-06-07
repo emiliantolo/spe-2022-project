@@ -41,6 +41,7 @@ int main(int argc, char *argv[]) {
     NodeContainer apNodes;
     apNodes.Create(1);
 
+
     MobilityHelper mobility;
 
     mobility.SetPositionAllocator("ns3::GridPositionAllocator",
@@ -50,7 +51,6 @@ int main(int argc, char *argv[]) {
                                     "DeltaY", DoubleValue(0.0),
                                     "GridWidth", UintegerValue(3),
                                     "LayoutType", StringValue("RowFirst"));
-
     mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     mobility.Install(staNodes.Get(0));
     
@@ -60,7 +60,6 @@ int main(int argc, char *argv[]) {
     mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     mobility.Install(staNodes.Get(1));
 
-  
 
     Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel>();
     lossModel->SetDefaultLoss(200);
@@ -68,12 +67,12 @@ int main(int argc, char *argv[]) {
     lossModel->SetLoss(apNodes.Get(0)->GetObject<MobilityModel>(), staNodes.Get(0)->GetObject<MobilityModel>(), 50);
     lossModel->SetLoss(apNodes.Get(0)->GetObject<MobilityModel>(), staNodes.Get(1)->GetObject<MobilityModel>(), 50);
 
-
     Ptr<YansWifiChannel> channel = CreateObject <YansWifiChannel> ();
-    channel->SetPropagationLossModel(lossModel);
-    
-    YansWifiPhyHelper phy =  YansWifiPhyHelper::Default ();
-    //phy.SetErrorRateModel("ns3::NistErrorRateModel");
+    channel->SetPropagationLossModel (lossModel);
+    channel->SetPropagationDelayModel (CreateObject <ConstantSpeedPropagationDelayModel> ());
+
+    YansWifiPhyHelper phy;
+    phy.SetErrorRateModel("ns3::NistErrorRateModel");
     phy.SetChannel(channel);
 
     WifiHelper wifi;
