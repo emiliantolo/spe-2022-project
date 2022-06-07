@@ -8,6 +8,9 @@
 #include "ns3/ssid.h"             //for ssid in wireless network
 #include "ns3/ipv4-global-routing-helper.h"
 #include "ns3/mobility-module.h"
+#include "ns3/propagation-loss-model.h"
+#include "ns3/wifi-module.h"
+#include "ns3/propagation-module.h"
 
 using namespace ns3;
 
@@ -16,6 +19,8 @@ NS_LOG_COMPONENT_DEFINE("LaboratoryExample");
 int main(int argc, char *argv[]) {
     bool verbose = true;
     uint32_t staNum = 2;
+
+    //Config::SetDefault ("ns3::WifiRemoteStationManager::RtsCtsThreshold", UintegerValue (100));
     
     CommandLine cmd(__FILE__);
 
@@ -36,27 +41,7 @@ int main(int argc, char *argv[]) {
     NodeContainer apNodes;
     apNodes.Create(1);
 
-    // wifi property
-    YansWifiChannelHelper channel = YansWifiChannelHelper::Default();
-    YansWifiPhyHelper phy;
-    phy.SetErrorRateModel ("ns3::NistErrorRateModel");
-    phy.SetChannel(channel.Create());
-
-    WifiHelper wifi;
-    wifi.SetRemoteStationManager("ns3::AarfWifiManager");
-    
-    WifiMacHelper mac;
-    Ssid ssid = Ssid("spe-ssid");
-    
-    mac.SetType("ns3::StaWifiMac", "Ssid", SsidValue(ssid));
-    NetDeviceContainer apDevices;
-    apDevices = wifi.Install(phy, mac, apNodes);
-    
-    mac.SetType("ns3::ApWifiMac", "Ssid", SsidValue(ssid));
-    NetDeviceContainer staDevices;
-    staDevices = wifi.Install(phy, mac, staNodes);
-
-    MobilityHelper mobility; // mobilità dei nodi wireless
+    MobilityHelper mobility;
 
     mobility.SetPositionAllocator("ns3::GridPositionAllocator",
                                     "MinX", DoubleValue(0.0),
@@ -74,6 +59,36 @@ int main(int argc, char *argv[]) {
 
     mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     mobility.Install(staNodes.Get(1));
+
+  
+
+    Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel>();
+    lossModel->SetDefaultLoss(200);
+
+    lossModel->SetLoss(apNodes.Get(0)->GetObject<MobilityModel>(), staNodes.Get(0)->GetObject<MobilityModel>(), 50);
+    lossModel->SetLoss(apNodes.Get(0)->GetObject<MobilityModel>(), staNodes.Get(1)->GetObject<MobilityModel>(), 50);
+
+
+    Ptr<YansWifiChannel> channel = CreateObject <YansWifiChannel> ();
+    channel->SetPropagationLossModel(lossModel);
+    
+    YansWifiPhyHelper phy =  YansWifiPhyHelper::Default ();
+    //phy.SetErrorRateModel("ns3::NistErrorRateModel");
+    phy.SetChannel(channel);
+
+    WifiHelper wifi;
+    wifi.SetRemoteStationManager("ns3::AarfWifiManager");
+    
+    WifiMacHelper mac;
+    Ssid ssid = Ssid("spe-ssid");
+    
+    mac.SetType("ns3::StaWifiMac", "Ssid", SsidValue(ssid));
+    NetDeviceContainer apDevices;
+    apDevices = wifi.Install(phy, mac, apNodes);
+    
+    mac.SetType("ns3::ApWifiMac", "Ssid", SsidValue(ssid));
+    NetDeviceContainer staDevices;
+    staDevices = wifi.Install(phy, mac, staNodes);
 
     InternetStackHelper stack;
     stack.Install(apNodes);
