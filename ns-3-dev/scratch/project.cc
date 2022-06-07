@@ -30,6 +30,7 @@ int main(int argc, char *argv[]) {
     cmd.AddValue("verbose", "Enable logging", verbose);
     cmd.AddValue("rtscts", "Enable RTS/CTS", rtscts);
     cmd.AddValue("logloss", "Enable LogDistancePropagationLossModel", logloss);
+    cmd.AddValue("exposed", "Enable Exposed", exposed);
     cmd.Parse(argc, argv);
 
     Time::SetResolution(Time::NS);
