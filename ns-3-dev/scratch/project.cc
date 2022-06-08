@@ -76,7 +76,9 @@ int main(int argc, char *argv[]) {
     phy.SetChannel(channel);
 
     WifiHelper wifi;
-    wifi.SetRemoteStationManager("ns3::AarfWifiManager");
+    wifi.SetStandard (WIFI_STANDARD_80211n_2_4GHZ);
+    wifi.SetRemoteStationManager("ns3::MinstrelHtWifiManager");
+
     
     WifiMacHelper mac;
     Ssid ssid = Ssid("spe-ssid");
@@ -118,7 +120,7 @@ int main(int argc, char *argv[]) {
     //onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1)));
     ApplicationContainer clientApps;
     //onOffHelper.SetAttribute ("DataRate", StringValue ("3000000bps"));
-    onOffHelper.SetAttribute ("DataRate", StringValue ("54Mbps"));
+    onOffHelper.SetAttribute ("DataRate", StringValue ("5Mbps"));
     //onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1.1)));
     clientApps.Add(onOffHelper.Install(staNodes.Get(0)));
     //onOffHelper.SetAttribute ("DataRate", StringValue ("3001100bps"));
@@ -128,10 +130,10 @@ int main(int argc, char *argv[]) {
     clientApps.Start(Seconds(1.1));
     clientApps.Stop(Seconds(4.1));
        
-    //phy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
-    //phy.EnablePcap ("wifi-ap0", apDevices.Get(0));
-    //phy.EnablePcap ("wifi-st0", staDevices.Get(0));
-    //phy.EnablePcap ("wifi-st1", staDevices.Get(1));
+    phy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
+    phy.EnablePcap ("wifi-ap0", apDevices.Get(0));
+    phy.EnablePcap ("wifi-st0", staDevices.Get(0));
+    phy.EnablePcap ("wifi-st1", staDevices.Get(1));
 
     
     AsciiTraceHelper ascii; 

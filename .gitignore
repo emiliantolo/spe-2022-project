@@ -1,3 +1,4 @@
 ns-3-dev/*
 !ns-3-dev/scratch/
+!ns-3-dev/count.sh
 
