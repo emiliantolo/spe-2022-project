@@ -20,8 +20,6 @@ NS_LOG_COMPONENT_DEFINE("LaboratoryExample");
 int main(int argc, char *argv[]) {
     bool verbose = true;
     bool rtscts = true;
-    bool logloss = false;
-    bool exposed = false;
 
     uint32_t staNum = 2;
 
@@ -29,8 +27,6 @@ int main(int argc, char *argv[]) {
 
     cmd.AddValue("verbose", "Enable logging", verbose);
     cmd.AddValue("rtscts", "Enable RTS/CTS", rtscts);
-    cmd.AddValue("logloss", "Enable LogDistancePropagationLossModel", logloss);
-    cmd.AddValue("exposed", "Enable Exposed", exposed);
     cmd.Parse(argc, argv);
 
     Time::SetResolution(Time::NS);
@@ -66,18 +62,14 @@ int main(int argc, char *argv[]) {
     mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     mobility.Install(staNodes.Get(1));
 
+    Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel>();
+    lossModel->SetDefaultLoss(200);
+    lossModel->SetLoss(apNodes.Get(0)->GetObject<MobilityModel>(), staNodes.Get(0)->GetObject<MobilityModel>(), 50);
+    lossModel->SetLoss(apNodes.Get(0)->GetObject<MobilityModel>(), staNodes.Get(1)->GetObject<MobilityModel>(), 50);
+    
     Ptr<YansWifiChannel> channel = CreateObject <YansWifiChannel> ();
     channel->SetPropagationDelayModel (CreateObject <ConstantSpeedPropagationDelayModel> ());
-    if(logloss) {
-        Ptr<LogDistancePropagationLossModel> lossModel = CreateObject<LogDistancePropagationLossModel>();
-        channel->SetPropagationLossModel(lossModel);
-    } else {
-        Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel>();
-        lossModel->SetDefaultLoss(200);
-        lossModel->SetLoss(apNodes.Get(0)->GetObject<MobilityModel>(), staNodes.Get(0)->GetObject<MobilityModel>(), 50);
-        lossModel->SetLoss(apNodes.Get(0)->GetObject<MobilityModel>(), staNodes.Get(1)->GetObject<MobilityModel>(), 50);
-        channel->SetPropagationLossModel(lossModel);
-    }
+    channel->SetPropagationLossModel(lossModel);
 
     YansWifiPhyHelper phy;
     phy.SetErrorRateModel("ns3::NistErrorRateModel");
@@ -89,11 +81,11 @@ int main(int argc, char *argv[]) {
     WifiMacHelper mac;
     Ssid ssid = Ssid("spe-ssid");
     
-    mac.SetType("ns3::StaWifiMac", "Ssid", SsidValue(ssid));
+    mac.SetType("ns3::ApWifiMac", "Ssid", SsidValue(ssid));
     NetDeviceContainer apDevices;
     apDevices = wifi.Install(phy, mac, apNodes);
     
-    mac.SetType("ns3::ApWifiMac", "Ssid", SsidValue(ssid));
+    mac.SetType("ns3::StaWifiMac", "Ssid", SsidValue(ssid));
     NetDeviceContainer staDevices;
     staDevices = wifi.Install(phy, mac, staNodes);
 
@@ -108,37 +100,42 @@ int main(int argc, char *argv[]) {
     Ipv4InterfaceContainer apWifiInterfaces;
     apWifiInterfaces = address.Assign(apDevices);
 
-
-    FdNetDeviceHelper fdNetDeviceHelper;
-
     uint16_t port = 8000;
     Address serverAddress = InetSocketAddress(apWifiInterfaces.GetAddress(0), port);
 
     //server
-    PacketSinkHelper sinkHelper ("ns3::TcpSocketFactory", serverAddress);
+    PacketSinkHelper sinkHelper ("ns3::UdpSocketFactory", serverAddress);
     ApplicationContainer serverApp = sinkHelper.Install(apNodes.Get(0));
     serverApp.Start(Seconds (1.0));
-    serverApp.Stop(Seconds (1.1));
-    fdNetDeviceHelper.EnablePcap("fd2fd-onoff-server-0", apDevices.Get(0));
+    serverApp.Stop(Seconds (20.0));
 
     //client
-    OnOffHelper onOffHelper ("ns3::TcpSocketFactory", serverAddress);
+    OnOffHelper onOffHelper ("ns3::UdpSocketFactory", serverAddress);
     onOffHelper.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
     onOffHelper.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
+    //onOffHelper.SetAttribute ("DataRate", StringValue ("54Mbps"));
+    onOffHelper.SetAttribute ("PacketSize", UintegerValue (1000));
+    //onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1)));
+    ApplicationContainer clientApps;
+    //onOffHelper.SetAttribute ("DataRate", StringValue ("3000000bps"));
     onOffHelper.SetAttribute ("DataRate", StringValue ("54Mbps"));
-    onOffHelper.SetAttribute ("PacketSize", UintegerValue (1024));
-    onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1)));
-    ApplicationContainer clientApp;
-    clientApp.Add(onOffHelper.Install(staNodes.Get(0)));
-    clientApp.Add(onOffHelper.Install(staNodes.Get(1)));
-    clientApp.Start(Seconds(1.0));
-    clientApp.Stop(Seconds(1.05));
-    fdNetDeviceHelper.EnablePcap("fd2fd-onoff-client-0", staDevices.Get(0));
-    fdNetDeviceHelper.EnablePcap("fd2fd-onoff-client-1", staDevices.Get(1));
+    //onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1.1)));
+    clientApps.Add(onOffHelper.Install(staNodes.Get(0)));
+    //onOffHelper.SetAttribute ("DataRate", StringValue ("3001100bps"));
+    //onOffHelper.SetAttribute ("DataRate", StringValue ("54Mbps"));
+    //onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1.1)));
+    clientApps.Add(onOffHelper.Install(staNodes.Get(1)));
+    clientApps.Start(Seconds(1.1));
+    clientApps.Stop(Seconds(4.1));
+       
+    //phy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
+    //phy.EnablePcap ("wifi-ap0", apDevices.Get(0));
+    //phy.EnablePcap ("wifi-st0", staDevices.Get(0));
+    //phy.EnablePcap ("wifi-st1", staDevices.Get(1));
 
-
-
-
+    
+    AsciiTraceHelper ascii; 
+    phy.EnableAsciiAll (ascii.CreateFileStream ("wifi.tr"));
     
 
 /*
@@ -165,7 +162,9 @@ int main(int argc, char *argv[]) {
 
   */
 
-    Simulator::Stop(Seconds(1.1));  
+
+
+    Simulator::Stop(Seconds(5));  
 
     Simulator::Run();
 
