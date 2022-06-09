@@ -2,10 +2,10 @@ def main():
     import sem
     import os
 
-    script = 'project_2'
+    script = 'project_1'
     ns_path = os.path.join(os.path.dirname(
         os.path.realpath(__file__)), 'ns-3-dev')
-    campaign_dir = "./project_campaign_2"
+    campaign_dir = "./project_campaign_new_1"
 
     campaign = sem.CampaignManager.new(ns_path, script, campaign_dir,
                                        runner_type='ParallelRunner',
@@ -15,7 +15,7 @@ def main():
     param_combinations = {
         'rtscts': [True, False],
         'standard': [0, 1, 2],
-        'datarate': ['1', '2', '4', '8', '16']
+        'datarate': ['10', '25', '50', '100', '200']
     }
 
     campaign.run_missing_simulations(

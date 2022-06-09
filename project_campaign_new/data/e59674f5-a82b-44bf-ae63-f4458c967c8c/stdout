@@ -1,0 +1,16 @@
+Flow 4294967295 (10.0.0.1 -> 10.0.0.3)
+  Tx Packets: 2999
+  Tx Bytes:   3082972
+  TxOffered:  2.74042 Mbps
+  Rx Packets: 918
+  Rx Bytes:   943704
+  Throughput: 0.838848 Mbps
+  Packet Loss Ratio: 69.3898 %
+Flow 0 (10.0.0.2 -> 10.0.0.3)
+  Tx Packets: 3019
+  Tx Bytes:   3103532
+  TxOffered:  2.7587 Mbps
+  Rx Packets: 358
+  Rx Bytes:   368024
+  Throughput: 0.327132 Mbps
+  Packet Loss Ratio: 88.1418 %

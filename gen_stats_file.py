@@ -2,7 +2,7 @@ from matplotlib.pyplot import axis
 import pandas as pd
 import json
 
-f = open('./project_campaign_2/project_campaign_2.json', 'r')
+f = open('./project_campaign_new_1/project_campaign_new_1.json', 'r')
 data = json.load(f)
 
 df = pd.DataFrame(columns=['rtscts', 'standard', 'datarate',
@@ -10,7 +10,7 @@ df = pd.DataFrame(columns=['rtscts', 'standard', 'datarate',
 
 for i in data['results']:
     id = data['results'][i]['meta']['id']
-    file = open('./project_campaign_2/data/' + id + '/stdout', 'r')
+    file = open('./project_campaign_new_1/data/' + id + '/stdout', 'r')
     lines = file.readlines()
     thr1 = lines[6].split(':')[1].strip()
     pkl1 = lines[7].split(':')[1].strip()
@@ -19,4 +19,4 @@ for i in data['results']:
     df.loc[len(df)] = list(data['results'][i]['params'].values()) + \
         [thr1, pkl1, thr2, pkl2]
 
-df.to_csv('stats_2.csv', sep='\t')
+df.to_csv('stats_new_1.csv', sep='\t')

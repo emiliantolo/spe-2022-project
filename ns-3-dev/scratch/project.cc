@@ -142,10 +142,9 @@ int main(int argc, char *argv[]) {
     onOffHelper.SetAttribute ("StopTime", TimeValue (Seconds (4.1)));
     clientApps.Add(onOffHelper.Install(staNodes.Get(0)));
     //onOffHelper.SetAttribute ("DataRate", StringValue ("23001100bps"));
-    //onOffHelper.SetAttribute ("DataRate", StringValue ("54Mbps"));
-    //onOffHelper.SetAttribute ("DataRate", StringValue ("20.01Mbps"));
-    //onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1.11)));
-    //onOffHelper.SetAttribute ("StopTime", TimeValue (Seconds (4.1)));
+    onOffHelper.SetAttribute ("DataRate", StringValue (std::to_string(std::stod(datarate)*1.01)+"Mbps"));
+    onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1.11)));
+    onOffHelper.SetAttribute ("StopTime", TimeValue (Seconds (4.1)));
     clientApps.Add(onOffHelper.Install(staNodes.Get(1)));
     //clientApps.Start(Seconds(1.1));
     //clientApps.Stop(Seconds(4.1));
