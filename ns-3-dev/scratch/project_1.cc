@@ -78,12 +78,23 @@ int main(int argc, char *argv[]) {
     channel->SetPropagationLossModel(lossModel);
 
     YansWifiPhyHelper phy;
-    //phy.SetErrorRateModel("ns3::TableBasedErrorRateModel");
+    phy.SetErrorRateModel("ns3::NistErrorRateModel");
     phy.SetChannel(channel);
 
     WifiHelper wifi;
-    wifi.SetStandard (WIFI_STANDARD_80211a);
-    wifi.SetRemoteStationManager("ns3::AarfWifiManager");
+    switch (standard) {
+      case 0:
+      wifi.SetStandard (WIFI_STANDARD_80211n_2_4GHZ);
+      break;
+      case 1:
+      wifi.SetStandard (WIFI_STANDARD_80211n_5GHZ);
+      break;
+      case 2:
+      wifi.SetStandard (WIFI_STANDARD_80211ac);
+      break;
+    }
+    //wifi.SetStandard (WIFI_STANDARD_80211ac);
+    wifi.SetRemoteStationManager("ns3::MinstrelHtWifiManager");
 
     
     WifiMacHelper mac;
@@ -128,12 +139,12 @@ int main(int argc, char *argv[]) {
     //onOffHelper.SetAttribute ("DataRate", StringValue ("3000000bps"));
     onOffHelper.SetAttribute ("DataRate", StringValue (datarate+"Mbps"));
     onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1.1)));
-    //onOffHelper.SetAttribute ("StopTime", TimeValue (Seconds (4.1)));
+    onOffHelper.SetAttribute ("StopTime", TimeValue (Seconds (4.1)));
     clientApps.Add(onOffHelper.Install(staNodes.Get(0)));
     //onOffHelper.SetAttribute ("DataRate", StringValue ("23001100bps"));
     onOffHelper.SetAttribute ("DataRate", StringValue (std::to_string(std::stod(datarate)*1.01)+"Mbps"));
     onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1.11)));
-    //onOffHelper.SetAttribute ("StopTime", TimeValue (Seconds (4.1)));
+    onOffHelper.SetAttribute ("StopTime", TimeValue (Seconds (4.1)));
     clientApps.Add(onOffHelper.Install(staNodes.Get(1)));
     //clientApps.Start(Seconds(1.1));
     //clientApps.Stop(Seconds(4.1));
@@ -177,7 +188,7 @@ int main(int argc, char *argv[]) {
 
 
 
-    Simulator::Stop(Seconds(4.1));  
+    Simulator::Stop(Seconds(5));  
 
     Simulator::Run();
 
