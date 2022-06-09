@@ -12,6 +12,8 @@
 #include "ns3/wifi-module.h"
 #include "ns3/propagation-module.h"
 #include "ns3/fd-net-device-module.h"
+#include "ns3/flow-monitor-helper.h"
+#include "ns3/ipv4-flow-classifier.h"
 
 using namespace ns3;
 
@@ -20,6 +22,8 @@ NS_LOG_COMPONENT_DEFINE("LaboratoryExample");
 int main(int argc, char *argv[]) {
     bool verbose = true;
     bool rtscts = true;
+    int standard = 0;
+    std::string datarate = "1";
 
     uint32_t staNum = 2;
 
@@ -27,6 +31,8 @@ int main(int argc, char *argv[]) {
 
     cmd.AddValue("verbose", "Enable logging", verbose);
     cmd.AddValue("rtscts", "Enable RTS/CTS", rtscts);
+    cmd.AddValue("standard", "Wifi standard", standard);
+    cmd.AddValue("datarate", "Data Rate Mbps", datarate);
     cmd.Parse(argc, argv);
 
     Time::SetResolution(Time::NS);
@@ -76,8 +82,19 @@ int main(int argc, char *argv[]) {
     phy.SetChannel(channel);
 
     WifiHelper wifi;
-    wifi.SetStandard (WIFI_STANDARD_80211n_2_4GHZ);
-    wifi.SetRemoteStationManager("ns3::MinstrelHtWifiManager");
+    switch (standard) {
+      case 0:
+      wifi.SetStandard (WIFI_STANDARD_80211a);
+      break;
+      case 1:
+      wifi.SetStandard (WIFI_STANDARD_80211b);
+      break;
+      case 2:
+      wifi.SetStandard (WIFI_STANDARD_80211g);
+      break;
+    }
+    //wifi.SetStandard (WIFI_STANDARD_80211ac);
+    wifi.SetRemoteStationManager("ns3::MinstrelWifiManager");
 
     
     WifiMacHelper mac;
@@ -120,17 +137,20 @@ int main(int argc, char *argv[]) {
     //onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1)));
     ApplicationContainer clientApps;
     //onOffHelper.SetAttribute ("DataRate", StringValue ("3000000bps"));
-    onOffHelper.SetAttribute ("DataRate", StringValue ("5Mbps"));
-    //onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1.1)));
+    onOffHelper.SetAttribute ("DataRate", StringValue (datarate+"Mbps"));
+    onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1.1)));
+    onOffHelper.SetAttribute ("StopTime", TimeValue (Seconds (4.1)));
     clientApps.Add(onOffHelper.Install(staNodes.Get(0)));
-    //onOffHelper.SetAttribute ("DataRate", StringValue ("3001100bps"));
+    //onOffHelper.SetAttribute ("DataRate", StringValue ("23001100bps"));
     //onOffHelper.SetAttribute ("DataRate", StringValue ("54Mbps"));
-    //onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1.1)));
+    //onOffHelper.SetAttribute ("DataRate", StringValue ("20.01Mbps"));
+    //onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1.11)));
+    //onOffHelper.SetAttribute ("StopTime", TimeValue (Seconds (4.1)));
     clientApps.Add(onOffHelper.Install(staNodes.Get(1)));
-    clientApps.Start(Seconds(1.1));
-    clientApps.Stop(Seconds(4.1));
+    //clientApps.Start(Seconds(1.1));
+    //clientApps.Stop(Seconds(4.1));
        
-    phy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
+    //phy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
     phy.EnablePcap ("wifi-ap0", apDevices.Get(0));
     phy.EnablePcap ("wifi-st0", staDevices.Get(0));
     phy.EnablePcap ("wifi-st1", staDevices.Get(1));
@@ -138,7 +158,10 @@ int main(int argc, char *argv[]) {
     
     AsciiTraceHelper ascii; 
     phy.EnableAsciiAll (ascii.CreateFileStream ("wifi.tr"));
-    
+
+
+  FlowMonitorHelper flowmon;
+  Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
 
 /*
     UdpEchoServerHelper echoServer(13);
@@ -169,6 +192,31 @@ int main(int argc, char *argv[]) {
     Simulator::Stop(Seconds(5));  
 
     Simulator::Run();
+
+    
+      monitor->CheckForLostPackets ();
+  Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier> (flowmon.GetClassifier ());
+  FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
+  for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
+    {
+      // first 2 FlowIds are for ECHO apps, we don't want to display them
+      //
+      // Duration for throughput measurement is 9.0 seconds, since
+      //   StartTime of the OnOffApplication is at about "second 1"
+      // and
+      //   Simulator::Stops at "second 10".
+
+          Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
+          std::cout << "Flow " << i->first - 2 << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
+          std::cout << "  Tx Packets: " << i->second.txPackets << "\n";
+          std::cout << "  Tx Bytes:   " << i->second.txBytes << "\n";
+          std::cout << "  TxOffered:  " << i->second.txBytes * 8.0 / 9.0 / 1000 / 1000  << " Mbps\n";
+          std::cout << "  Rx Packets: " << i->second.rxPackets << "\n";
+          std::cout << "  Rx Bytes:   " << i->second.rxBytes << "\n";
+          std::cout << "  Throughput: " << i->second.rxBytes * 8.0 / 9.0 / 1000 / 1000  << " Mbps\n";
+              std::cout << "  Packet Loss Ratio: " << (i->second.txPackets - i->second.rxPackets)*100/(double)i->second.txPackets << " %\n";
+    }
+    
 
 /*
     std::cout<<apNodes.Get(0)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;
