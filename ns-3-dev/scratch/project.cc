@@ -22,8 +22,8 @@ NS_LOG_COMPONENT_DEFINE("LaboratoryExample");
 int main(int argc, char *argv[]) {
     bool verbose = true;
     bool rtscts = true;
-    int standard = 0;
-    std::string datarate = "1";
+    double datarate = 1.0;
+    int packetsize = 1000;
 
     uint32_t staNum = 2;
 
@@ -31,8 +31,8 @@ int main(int argc, char *argv[]) {
 
     cmd.AddValue("verbose", "Enable logging", verbose);
     cmd.AddValue("rtscts", "Enable RTS/CTS", rtscts);
-    cmd.AddValue("standard", "Wifi standard", standard);
     cmd.AddValue("datarate", "Data Rate Mbps", datarate);
+    cmd.AddValue("packetsize", "Packet size", packetsize);
     cmd.Parse(argc, argv);
 
     Time::SetResolution(Time::NS);
@@ -51,7 +51,6 @@ int main(int argc, char *argv[]) {
     apNodes.Create(1);
     
     MobilityHelper mobility;
-
     mobility.SetPositionAllocator("ns3::GridPositionAllocator",
                                     "MinX", DoubleValue(0.0),
                                     "MinY", DoubleValue(0.0),
@@ -61,11 +60,7 @@ int main(int argc, char *argv[]) {
                                     "LayoutType", StringValue("RowFirst"));
     mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     mobility.Install(staNodes.Get(0));
-    
-    mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     mobility.Install(apNodes.Get(0));
-
-    mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     mobility.Install(staNodes.Get(1));
 
     Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel>();
@@ -78,13 +73,11 @@ int main(int argc, char *argv[]) {
     channel->SetPropagationLossModel(lossModel);
 
     YansWifiPhyHelper phy;
-    //phy.SetErrorRateModel("ns3::TableBasedErrorRateModel");
     phy.SetChannel(channel);
-
+    
     WifiHelper wifi;
     wifi.SetStandard (WIFI_STANDARD_80211a);
-    wifi.SetRemoteStationManager("ns3::AarfWifiManager");
-
+    wifi.SetRemoteStationManager ("ns3::ArfWifiManager");
     
     WifiMacHelper mac;
     Ssid ssid = Ssid("spe-ssid");
@@ -121,18 +114,15 @@ int main(int argc, char *argv[]) {
     OnOffHelper onOffHelper ("ns3::UdpSocketFactory", serverAddress);
     onOffHelper.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
     onOffHelper.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
-    //onOffHelper.SetAttribute ("DataRate", StringValue ("54Mbps"));
-    onOffHelper.SetAttribute ("PacketSize", UintegerValue (1000));
-    //onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1)));
+    onOffHelper.SetAttribute ("PacketSize", UintegerValue (packetsize));
     ApplicationContainer clientApps;
-    //onOffHelper.SetAttribute ("DataRate", StringValue ("3000000bps"));
-    onOffHelper.SetAttribute ("DataRate", StringValue (datarate+"Mbps"));
+    onOffHelper.SetAttribute ("DataRate", StringValue (std::to_string(datarate)+"Mbps"));
     onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1.1)));
-    //onOffHelper.SetAttribute ("StopTime", TimeValue (Seconds (4.1)));
+    onOffHelper.SetAttribute ("StopTime", TimeValue (Seconds (4.1)));
     clientApps.Add(onOffHelper.Install(staNodes.Get(0)));
     //onOffHelper.SetAttribute ("DataRate", StringValue ("23001100bps"));
-    onOffHelper.SetAttribute ("DataRate", StringValue (std::to_string(std::stod(datarate)*1.01)+"Mbps"));
-    onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1.11)));
+    //onOffHelper.SetAttribute ("DataRate", StringValue (std::to_string(std::stod(datarate)*1.01)+"Mbps"));
+    //onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1.11)));
     //onOffHelper.SetAttribute ("StopTime", TimeValue (Seconds (4.1)));
     clientApps.Add(onOffHelper.Install(staNodes.Get(1)));
     //clientApps.Start(Seconds(1.1));
@@ -177,7 +167,7 @@ int main(int argc, char *argv[]) {
 
 
 
-    Simulator::Stop(Seconds(4.1));  
+    Simulator::Stop(Seconds(5));  
 
     Simulator::Run();
 
@@ -187,13 +177,6 @@ int main(int argc, char *argv[]) {
   FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
   for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i)
     {
-      // first 2 FlowIds are for ECHO apps, we don't want to display them
-      //
-      // Duration for throughput measurement is 9.0 seconds, since
-      //   StartTime of the OnOffApplication is at about "second 1"
-      // and
-      //   Simulator::Stops at "second 10".
-
           Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
           std::cout << "Flow " << i->first - 2 << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
           std::cout << "  Tx Packets: " << i->second.txPackets << "\n";
@@ -202,7 +185,7 @@ int main(int argc, char *argv[]) {
           std::cout << "  Rx Packets: " << i->second.rxPackets << "\n";
           std::cout << "  Rx Bytes:   " << i->second.rxBytes << "\n";
           std::cout << "  Throughput: " << i->second.rxBytes * 8.0 / 9.0 / 1000 / 1000  << " Mbps\n";
-              std::cout << "  Packet Loss Ratio: " << (i->second.txPackets - i->second.rxPackets)*100/(double)i->second.txPackets << " %\n";
+          std::cout << "  Packet Loss Ratio: " << (i->second.txPackets - i->second.rxPackets)*100/(double)i->second.txPackets << " %\n";
     }
     
 
