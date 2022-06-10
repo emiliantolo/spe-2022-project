@@ -14,7 +14,7 @@ def main():
 
     param_combinations = {
         'rtscts': [True, False],
-        'datarate': [1, 2, 4, 8, 16],
+        'datarate': [1, 2, 5, 10, 15],
         'packetsize': [100, 500, 1000, 1500]
     }
 
