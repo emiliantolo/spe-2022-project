@@ -49,7 +49,8 @@ int main(int argc, char *argv[]) {
 
     NodeContainer apNodes;
     apNodes.Create(1);
-    
+
+
     MobilityHelper mobility;
     mobility.SetPositionAllocator("ns3::GridPositionAllocator",
                                     "MinX", DoubleValue(0.0),
@@ -58,15 +59,36 @@ int main(int argc, char *argv[]) {
                                     "DeltaY", DoubleValue(0.0),
                                     "GridWidth", UintegerValue(3),
                                     "LayoutType", StringValue("RowFirst"));
+/*
+    MobilityHelper mobility;
+    Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
+    positionAlloc->Add (Vector (0.0, 0.0, 0.0));
+    positionAlloc->Add (Vector (150.0, 0.0, 0.0));
+    positionAlloc->Add (Vector (300.0, 0.0, 0.0));
+    mobility.SetPositionAllocator (positionAlloc);
+*/
+
+
     mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     mobility.Install(staNodes.Get(0));
     mobility.Install(apNodes.Get(0));
     mobility.Install(staNodes.Get(1));
 
+
+/*
+    Config::SetDefault ("ns3::RangePropagationLossModel::MaxRange", DoubleValue (200));
+    YansWifiChannelHelper channel = YansWifiChannelHelper::Default ();
+    channel.AddPropagationLoss ("ns3::RangePropagationLossModel"); //wireless range limited to 5 meters!
+
+    YansWifiPhyHelper phy;
+    phy.SetChannel(channel.Create());
+*/
+
     Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel>();
     lossModel->SetDefaultLoss(200);
     lossModel->SetLoss(apNodes.Get(0)->GetObject<MobilityModel>(), staNodes.Get(0)->GetObject<MobilityModel>(), 50);
     lossModel->SetLoss(apNodes.Get(0)->GetObject<MobilityModel>(), staNodes.Get(1)->GetObject<MobilityModel>(), 50);
+
     
     Ptr<YansWifiChannel> channel = CreateObject <YansWifiChannel> ();
     channel->SetPropagationDelayModel (CreateObject <ConstantSpeedPropagationDelayModel> ());
@@ -74,6 +96,7 @@ int main(int argc, char *argv[]) {
 
     YansWifiPhyHelper phy;
     phy.SetChannel(channel);
+
     
     WifiHelper wifi;
     wifi.SetStandard (WIFI_STANDARD_80211a);
@@ -104,18 +127,18 @@ int main(int argc, char *argv[]) {
     uint16_t port = 8000;
     Address serverAddress = InetSocketAddress(apWifiInterfaces.GetAddress(0), port);
     
-    double simulationTime = 8.0;
+    double simulationTime = 80.0;
     double sendStart = 1.1;
-    double sendTime = 5.0;
+    double sendTime = 50.0;
 
     //server
-    PacketSinkHelper sinkHelper ("ns3::UdpSocketFactory", serverAddress);
+    PacketSinkHelper sinkHelper ("ns3::TcpSocketFactory", serverAddress);
     ApplicationContainer serverApp = sinkHelper.Install(apNodes.Get(0));
     serverApp.Start(Seconds(0));
     serverApp.Stop(Seconds(simulationTime));
 
     //client
-    OnOffHelper onOffHelper ("ns3::UdpSocketFactory", serverAddress);
+    OnOffHelper onOffHelper ("ns3::TcpSocketFactory", serverAddress);
     onOffHelper.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
     onOffHelper.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
     onOffHelper.SetAttribute ("PacketSize", UintegerValue (packetsize));
@@ -125,8 +148,8 @@ int main(int argc, char *argv[]) {
     onOffHelper.SetAttribute ("StopTime", TimeValue (Seconds (sendStart + sendTime)));
     clientApps.Add(onOffHelper.Install(staNodes.Get(0)));
     clientApps.Add(onOffHelper.Install(staNodes.Get(1)));
-
-    //phy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
+    
+    phy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
     phy.EnablePcap ("wifi-ap0", apDevices.Get(0));
     phy.EnablePcap ("wifi-st0", staDevices.Get(0));
     phy.EnablePcap ("wifi-st1", staDevices.Get(1));
@@ -137,7 +160,7 @@ int main(int argc, char *argv[]) {
     FlowMonitorHelper flowmon;
     Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
 
-    Simulator::Stop(Seconds(simulationTime));  
+    Simulator::Stop(Seconds(simulationTime));
     Simulator::Run();
     
       monitor->CheckForLostPackets ();
@@ -145,7 +168,7 @@ int main(int argc, char *argv[]) {
       FlowMonitor::FlowStatsContainer stats = monitor->GetFlowStats ();
       for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin (); i != stats.end (); ++i) {
           Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow (i->first);
-          std::cout << "Flow " << i->first - 2 << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
+          std::cout << "Flow " << i->first << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
           std::cout << "  Tx Packets: " << i->second.txPackets << "\n";
           std::cout << "  Tx Bytes:   " << i->second.txBytes << "\n";
           std::cout << "  TxOffered:  " << i->second.txBytes * 8.0 / sendTime / 1000 / 1000  << " Mbps\n";
