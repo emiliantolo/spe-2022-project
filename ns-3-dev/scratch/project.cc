@@ -127,9 +127,9 @@ int main(int argc, char *argv[]) {
     uint16_t port = 8000;
     Address serverAddress = InetSocketAddress(apWifiInterfaces.GetAddress(0), port);
     
-    double simulationTime = 80.0;
+    double simulationTime = 8.0;
     double sendStart = 1.1;
-    double sendTime = 50.0;
+    double sendTime = 5.0;
 
     //server
     PacketSinkHelper sinkHelper ("ns3::TcpSocketFactory", serverAddress);

@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
     NodeContainer apNodes;
     apNodes.Create(1);
 
-
+/*
     MobilityHelper mobility;
     mobility.SetPositionAllocator("ns3::GridPositionAllocator",
                                     "MinX", DoubleValue(0.0),
@@ -59,14 +59,15 @@ int main(int argc, char *argv[]) {
                                     "DeltaY", DoubleValue(0.0),
                                     "GridWidth", UintegerValue(3),
                                     "LayoutType", StringValue("RowFirst"));
-/*
+*/
+
+
     MobilityHelper mobility;
     Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
     positionAlloc->Add (Vector (0.0, 0.0, 0.0));
     positionAlloc->Add (Vector (150.0, 0.0, 0.0));
-    positionAlloc->Add (Vector (300.0, 0.0, 0.0));
+    positionAlloc->Add (Vector (160.0, 0.0, 0.0));
     mobility.SetPositionAllocator (positionAlloc);
-*/
 
 
     mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
@@ -87,13 +88,21 @@ int main(int argc, char *argv[]) {
 /*
     Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel>();
     lossModel->SetDefaultLoss(200);
-    lossModel->SetLoss(apNodes.Get(0)->GetObject<MobilityModel>(), staNodes.Get(0)->GetObject<MobilityModel>(), 50);
-    lossModel->SetLoss(apNodes.Get(0)->GetObject<MobilityModel>(), staNodes.Get(1)->GetObject<MobilityModel>(), 50);
+    lossModel->SetLoss(apNodes.Get(0)->GetObject<MobilityModel>(), staNodes.Get(0)->GetObject<MobilityModel>(), 80);
+    lossModel->SetLoss(apNodes.Get(0)->GetObject<MobilityModel>(), staNodes.Get(1)->GetObject<MobilityModel>(), 45);
 */
 
+
+    Ptr<RangePropagationLossModel> propagationLossModel = CreateObject<RangePropagationLossModel>();
+    propagationLossModel->SetAttribute("MaxRange", DoubleValue(155));
     Ptr<LogDistancePropagationLossModel> lossModel = CreateObject<LogDistancePropagationLossModel>();
-    lossModel->SetAttribute ("ReferenceDistance", DoubleValue (150));
-    lossModel->SetAttribute ("ReferenceLoss", DoubleValue (50));
+    lossModel->SetAttribute("ReferenceDistance", DoubleValue (10));
+    lossModel->SetAttribute("ReferenceLoss", DoubleValue (45));
+    lossModel->SetNext(propagationLossModel);
+
+    //Ptr<LogDistancePropagationLossModel> lossModel = CreateObject<LogDistancePropagationLossModel>();
+    //lossModel->SetAttribute ("ReferenceDistance", DoubleValue (150));
+    //lossModel->SetAttribute ("ReferenceLoss", DoubleValue (50));
     //lossModel->SetAttribute ("ReferenceDistance", DoubleValue (50));
     /*lossModel->SetDefaultLoss(200);
     lossModel->SetLoss(apNodes.Get(0)->GetObject<MobilityModel>(), staNodes.Get(0)->GetObject<MobilityModel>(), 50);
@@ -187,11 +196,9 @@ int main(int argc, char *argv[]) {
           std::cout << "  Packet Loss Ratio: " << (i->second.txPackets - i->second.rxPackets)*100/(double)i->second.txPackets << " %\n";
       }  
       
-    /*
     std::cout<<apNodes.Get(0)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;
     std::cout<<staNodes.Get(0)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;
     std::cout<<staNodes.Get(1)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;
-    */
 
     Simulator::Destroy();
     return 0;

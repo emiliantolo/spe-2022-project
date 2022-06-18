@@ -6,4 +6,4 @@
 !project.cc
 !project_1.cc
 !project_log_dist.cc
-
+!project_log_dist_diff.cc

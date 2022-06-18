@@ -4,7 +4,7 @@ import pandas as pd
 import json
 import math
 
-f = open('./project_campaign_sizes/project_campaign_tcp.json', 'r')
+f = open('./project_campaign_exposed/project_campaign_exposed.json', 'r')
 data = json.load(f)
 
 df = pd.DataFrame(columns=['id', 'rtscts', 'datarate', 'packetsize',
@@ -21,11 +21,11 @@ df = pd.DataFrame(columns=['id', 'rtscts', 'datarate', 'packetsize',
 
 for i in data['results']:
     id = data['results'][i]['meta']['id']
-    file = open('./project_campaign_tcp/data/' + id + '/stdout', 'r')
+    file = open('./project_campaign_exposed/data/' + id + '/stdout', 'r')
     lines = file.readlines()
     thr1 = float(lines[6].split(':')[1].split('Mbps')[0].strip())
     thr2 = float(lines[14].split(':')[1].split('Mbps')[0].strip())
-    count_file = open('./project_campaign_tcp/data/' +
+    count_file = open('./project_campaign_exposed/data/' +
                       id + '/count.txt', 'r')
     count_lines = count_file.readlines()
     retr = int(count_lines[0]) + int(count_lines[1])
@@ -85,10 +85,10 @@ for i in range(len(thrs)):
                              ['means_f'], color='red', label='No RTS/CTS')
     axes[i // 2][i % 2].fill_between(datarates, y1=np.array(thrs[i]['means_f']) - eta/math.sqrt(n) * np.array(
         thrs[i]['stds_f']), y2=np.array(thrs[i]['means_f']) + eta/math.sqrt(n) * np.array(thrs[i]['stds_f']), color='red', alpha=0.2)
-    axes[i // 2][i % 2].set_xlim([0, 30])
+    axes[i // 2][i % 2].set_xlim([0, 40])
     axes[i // 2][i % 2].set_ylim([0, 30])
     axes[i // 2][i % 2].legend(loc="upper left")
-plt.savefig('thr_tcp.png')
+plt.savefig('thr_t.png')
 
 l = int(len(rtrs) / 2 if len(rtrs) % 2 == 0 else (len(rtrs) // 2 + 1))
 
@@ -103,7 +103,7 @@ for i in range(len(rtrs)):
                              ['means_f'], color='red', label='No RTS/CTS')
     axes[i // 2][i % 2].fill_between(datarates, y1=np.array(rtrs[i]['means_f']) - eta/math.sqrt(n) * np.array(
         rtrs[i]['stds_f']), y2=np.array(rtrs[i]['means_f']) + eta/math.sqrt(n) * np.array(rtrs[i]['stds_f']), color='red', alpha=0.2)
-    axes[i // 2][i % 2].set_xlim([0, 30])
+    axes[i // 2][i % 2].set_xlim([0, 40])
     axes[i // 2][i % 2].set_ylim([0, 5000])
     axes[i // 2][i % 2].legend(loc="upper left")
-plt.savefig('rtr_tcp.png')
+plt.savefig('rtr_t.png')
