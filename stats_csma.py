@@ -1,0 +1,91 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import json
+import math
+
+f = open('./project_campaign_csma/project_campaign_csma.json', 'r')
+data = json.load(f)
+
+df = pd.DataFrame(columns=['id', 'datarate', 'packetsize',
+                  'verbose', 'rng', 'thr', 'rtr'])
+
+
+# for i in data['results']:
+#    rtscts = data['results'][i]['params']['rstcts']
+#    datarate = data['results'][i]['params']['datarate']
+#    packetsize = data['results'][i]['params']['packetsize']
+#    key = str(rtscts) + '_' + str(datarate) + '_' + str(packetsize)
+#    id = data['results'][i]['meta']['id']
+
+
+for i in data['results']:
+    id = data['results'][i]['meta']['id']
+    file = open('./project_campaign_csma/data/' + id + '/stdout', 'r')
+    lines = file.readlines()
+    thr1 = float(lines[6].split(':')[1].split('Mbps')[0].strip())
+    thr2 = float(lines[14].split(':')[1].split('Mbps')[0].strip())
+    count_file = open('./project_campaign_csma/data/' +
+                      id + '/count.txt', 'r')
+    count_lines = count_file.readlines()
+    retr = int(count_lines[0]) + int(count_lines[1])
+    df.loc[len(df)] = [id] + list(data['results'][i]
+                                  ['params'].values()) + [thr1 + thr2, retr]
+
+df.to_csv('stats_tcp.csv', sep='\t')
+
+packetsizes = np.sort(df['packetsize'].unique())
+datarates = np.sort(df['datarate'].unique()) * 2
+
+
+df_thr = df.groupby(['datarate', 'packetsize']
+                    ).thr.agg(['mean', 'std']).reset_index()
+df_rtr = df.groupby(['datarate', 'packetsize']
+                    ).rtr.agg(['mean', 'std']).reset_index()
+
+thrs = []
+rtrs = []
+for s in packetsizes:
+    means_t = df_thr.loc[(df_thr['packetsize'] == s)].sort_values(
+        by=['datarate'], ascending=True)['mean']
+    stds_t = df_thr.loc[(df_thr['packetsize'] == s)].sort_values(
+        by=['datarate'], ascending=True)['std']
+    thrs.append({'means_t': list(means_t), 'stds_t': list(stds_t)})
+
+    means_t = df_rtr.loc[(df_rtr['packetsize'] == s)].sort_values(
+        by=['datarate'], ascending=True)['mean']
+    stds_t = df_rtr.loc[(df_rtr['packetsize'] == s)].sort_values(
+        by=['datarate'], ascending=True)['std']
+    rtrs.append({'means_t': list(means_t), 'stds_t': list(stds_t)})
+
+# 9 degrees of freedom, 95%
+eta = 2.262
+n = 10
+
+l = int(len(thrs) / 2 if len(thrs) % 2 == 0 else (len(thrs) // 2 + 1))
+
+fig, axes = plt.subplots(l, 2, figsize=(15, l * 5))
+for i in range(len(thrs)):
+    axes[i // 2][i % 2].set_title('Packet size: ' + str(packetsizes[i]))
+    axes[i // 2][i % 2].plot(datarates, thrs[i]
+                             ['means_t'], color='blue', label='RTS/CTS')
+    axes[i // 2][i % 2].fill_between(datarates, y1=np.array(thrs[i]['means_t']) - eta/math.sqrt(n) * np.array(
+        thrs[i]['stds_t']), y2=np.array(thrs[i]['means_t']) + eta/math.sqrt(n) * np.array(thrs[i]['stds_t']), color='blue', alpha=0.2)
+    #axes[i // 2][i % 2].set_xlim([0, 40])
+    #axes[i // 2][i % 2].set_ylim([0, 30])
+    axes[i // 2][i % 2].legend(loc="upper left")
+plt.savefig('thr_csma.png')
+
+l = int(len(rtrs) / 2 if len(rtrs) % 2 == 0 else (len(rtrs) // 2 + 1))
+
+fig, axes = plt.subplots(l, 2, figsize=(15, l * 5))
+for i in range(len(rtrs)):
+    axes[i // 2][i % 2].set_title('Packet size: ' + str(packetsizes[i]))
+    axes[i // 2][i % 2].plot(datarates, rtrs[i]
+                             ['means_t'], color='blue', label='RTS/CTS')
+    axes[i // 2][i % 2].fill_between(datarates, y1=np.array(rtrs[i]['means_t']) - eta/math.sqrt(n) * np.array(
+        rtrs[i]['stds_t']), y2=np.array(rtrs[i]['means_t']) + eta/math.sqrt(n) * np.array(rtrs[i]['stds_t']), color='blue', alpha=0.2)
+    #axes[i // 2][i % 2].set_xlim([0, 40])
+    #axes[i // 2][i % 2].set_ylim([0, 5000])
+    axes[i // 2][i % 2].legend(loc="upper left")
+plt.savefig('rtr_csma.png')

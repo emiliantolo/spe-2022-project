@@ -2,20 +2,22 @@ def main():
     import sem
     import os
 
-    script = 'project_csma'
+    script = 'project_mobile'
     ns_path = os.path.join(os.path.dirname(
         os.path.realpath(__file__)), 'ns-3-dev')
-    campaign_dir = "./project_campaign_csma"
+    campaign_dir = "./project_campaign_mobile"
 
     campaign = sem.CampaignManager.new(ns_path, script, campaign_dir,
                                        runner_type='ParallelRunner',
                                        check_repo=False,
-                                       overwrite=False,
-                                       skip_configuration=False)
+                                       overwrite=False)
 
     param_combinations = {
-        'datarate': [1, 2.5, 5, 10, 25, 50],
-        'packetsize': [250, 500, 750, 1000]
+        'rtscts': [True, False],
+        'datarate': [2.5, 5, 10, 20],
+        'packetsize': [1000],
+        'maxrange': [25.0, 50.0, 125.0],
+        'nstations': [2, 3, 4]
     }
 
     campaign.run_missing_simulations(

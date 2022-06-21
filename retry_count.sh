@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for d in project_campaign_diff/data/*/
+for d in project_campaign_mobile/data/*/
 do
-    (cd "$d" && ./../../../count.sh > count.txt) > /dev/null 2>&1
+    (cd "$d" && ./../../../count_mobile.sh > count.txt) > /dev/null 2>&1
 done

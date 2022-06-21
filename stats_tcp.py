@@ -37,9 +37,9 @@ df.to_csv('stats_tcp.csv', sep='\t')
 datarates = np.sort(df['datarate'].unique()) * 2
 
 
-df_thr = df.groupby(['rtscts', 'datarate', 'packetsize']
+df_thr = df.groupby(['rtscts', 'datarate', 'hidden', 'tcp']
                     ).thr.agg(['mean', 'std']).reset_index()
-df_rtr = df.groupby(['rtscts', 'datarate', 'packetsize']
+df_rtr = df.groupby(['rtscts', 'datarate', 'hidden', 'tcp']
                     ).rtr.agg(['mean', 'std']).reset_index()
 
 thrs = []
@@ -139,33 +139,36 @@ rtrs.append({'means_t': list(means_t), 'stds_t': list(stds_t),
 eta = 2.262
 n = 10
 
-fig, axes = plt.subplots(figsize=(15, 10))
+title = ['TCP hidden', 'UDP hidden', 'TCP exposed', 'UDP exposed']
+
+fig, axes = plt.subplots(2, 2, figsize=(15, 10))
 for i in range(4):
-    axes.set_title('Packet size: ')
-    axes.plot(datarates, thrs[i]
-              ['means_t'], color='blue', label='RTS/CTS')
-    axes.fill_between(datarates, y1=np.array(thrs[i]['means_t']) - eta/math.sqrt(n) * np.array(
+    axes[i // 2][i % 2].set_title(title[i])
+    axes[i // 2][i % 2].plot(datarates, thrs[i]
+                             ['means_t'], color='blue', label='RTS/CTS')
+    axes[i // 2][i % 2].fill_between(datarates, y1=np.array(thrs[i]['means_t']) - eta/math.sqrt(n) * np.array(
         thrs[0]['stds_t']), y2=np.array(thrs[i]['means_t']) + eta/math.sqrt(n) * np.array(thrs[i]['stds_t']), color='blue', alpha=0.2)
-    axes.plot(datarates, thrs[i]
-              ['means_f'], color='red', label='No RTS/CTS')
-    axes.fill_between(datarates, y1=np.array(thrs[i]['means_f']) - eta/math.sqrt(n) * np.array(
+    axes[i // 2][i % 2].plot(datarates, thrs[i]
+                             ['means_f'], color='red', label='No RTS/CTS')
+    axes[i // 2][i % 2].fill_between(datarates, y1=np.array(thrs[i]['means_f']) - eta/math.sqrt(n) * np.array(
         thrs[0]['stds_f']), y2=np.array(thrs[i]['means_f']) + eta/math.sqrt(n) * np.array(thrs[i]['stds_f']), color='red', alpha=0.2)
-    #axes.set_xlim([0, 30])
-    #axes.set_ylim([0, 30])
-    axes.legend(loc="upper left")
+    #axes[i // 2][i % 2].set_xlim([0, 30])
+    #axes[i // 2][i % 2].set_ylim([0, 30])
+    axes[i // 2][i % 2].legend(loc="upper left")
 plt.savefig('thr_tcp.png')
 
-fig, axes = plt.subplots(1, 1, figsize=(15, 10))
-axes.set_title('Packet size: ')
-axes.plot(datarates, rtrs[0]
-          ['means_t'], color='blue', label='RTS/CTS')
-axes.fill_between(datarates, y1=np.array(rtrs[0]['means_t']) - eta/math.sqrt(n) * np.array(
-    rtrs[0]['stds_t']), y2=np.array(rtrs[0]['means_t']) + eta/math.sqrt(n) * np.array(rtrs[0]['stds_t']), color='blue', alpha=0.2)
-axes.plot(datarates, rtrs[0]
-          ['means_f'], color='red', label='No RTS/CTS')
-axes.fill_between(datarates, y1=np.array(rtrs[0]['means_f']) - eta/math.sqrt(n) * np.array(
-    rtrs[0]['stds_f']), y2=np.array(rtrs[0]['means_f']) + eta/math.sqrt(n) * np.array(rtrs[0]['stds_f']), color='red', alpha=0.2)
-#axes.set_xlim([0, 30])
-#axes.set_ylim([0, 20000])
-axes.legend(loc="upper left")
+fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+for i in range(4):
+    axes[i // 2][i % 2].set_title(title[i])
+    axes[i // 2][i % 2].plot(datarates, rtrs[i]
+                             ['means_t'], color='blue', label='RTS/CTS')
+    axes[i // 2][i % 2].fill_between(datarates, y1=np.array(rtrs[i]['means_t']) - eta/math.sqrt(n) * np.array(
+        rtrs[i]['stds_t']), y2=np.array(rtrs[i]['means_t']) + eta/math.sqrt(n) * np.array(rtrs[i]['stds_t']), color='blue', alpha=0.2)
+    axes[i // 2][i % 2].plot(datarates, rtrs[i]
+                             ['means_f'], color='red', label='No RTS/CTS')
+    axes[i // 2][i % 2].fill_between(datarates, y1=np.array(rtrs[i]['means_f']) - eta/math.sqrt(n) * np.array(
+        rtrs[i]['stds_f']), y2=np.array(rtrs[i]['means_f']) + eta/math.sqrt(n) * np.array(rtrs[i]['stds_f']), color='red', alpha=0.2)
+    #axes[i // 2][i % 2].set_xlim([0, 30])
+    #axes[i // 2][i % 2].set_ylim([0, 20000])
+    axes[i // 2][i % 2].legend(loc="upper left")
 plt.savefig('rtr_tcp.png')
