@@ -50,7 +50,6 @@ int main(int argc, char *argv[]) {
     NodeContainer apNodes;
     apNodes.Create(1);
 
-
     MobilityHelper mobility;
     mobility.SetPositionAllocator("ns3::GridPositionAllocator",
                                     "MinX", DoubleValue(0.0),
@@ -59,30 +58,12 @@ int main(int argc, char *argv[]) {
                                     "DeltaY", DoubleValue(0.0),
                                     "GridWidth", UintegerValue(3),
                                     "LayoutType", StringValue("RowFirst"));
-/*
-    MobilityHelper mobility;
-    Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
-    positionAlloc->Add (Vector (0.0, 0.0, 0.0));
-    positionAlloc->Add (Vector (150.0, 0.0, 0.0));
-    positionAlloc->Add (Vector (300.0, 0.0, 0.0));
-    mobility.SetPositionAllocator (positionAlloc);
-*/
-
 
     mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
     mobility.Install(staNodes.Get(0));
     mobility.Install(apNodes.Get(0));
     mobility.Install(staNodes.Get(1));
 
-
-/*
-    Config::SetDefault ("ns3::RangePropagationLossModel::MaxRange", DoubleValue (200));
-    YansWifiChannelHelper channel = YansWifiChannelHelper::Default ();
-    channel.AddPropagationLoss ("ns3::RangePropagationLossModel"); //wireless range limited to 5 meters!
-
-    YansWifiPhyHelper phy;
-    phy.SetChannel(channel.Create());
-*/
 
     Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel>();
     lossModel->SetDefaultLoss(200);
@@ -150,12 +131,12 @@ int main(int argc, char *argv[]) {
     clientApps.Add(onOffHelper.Install(staNodes.Get(1)));
     
     phy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
-    phy.EnablePcap ("p/wifi-ap0", apDevices.Get(0), true);
-    phy.EnablePcap ("p/wifi-st0", staDevices.Get(0), true);
-    phy.EnablePcap ("p/wifi-st1", staDevices.Get(1), true);
+    //phy.EnablePcap ("wifi-ap0", apDevices.Get(0), true);
+    phy.EnablePcap ("wifi-st0", staDevices.Get(0), true);
+    phy.EnablePcap ("wifi-st1", staDevices.Get(1), true);
     
     AsciiTraceHelper ascii; 
-    phy.EnableAsciiAll (ascii.CreateFileStream ("wifi.tr"));
+    //phy.EnableAsciiAll (ascii.CreateFileStream ("wifi.tr"));
 
     FlowMonitorHelper flowmon;
     Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
