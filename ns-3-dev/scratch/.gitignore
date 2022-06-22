@@ -5,7 +5,7 @@
 #!scratch-simulator.cc
 !project_hidden.cc
 !project_exposed.cc
-!project_exposed_four.cc
+!project_exposed_four2.cc
 !project_exposed_diff.cc
 !project_tcp.cc
 !project_csma.cc
