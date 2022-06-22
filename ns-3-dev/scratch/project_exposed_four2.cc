@@ -55,24 +55,30 @@ int main(int argc, char *argv[]) {
     mobility.SetPositionAllocator("ns3::GridPositionAllocator",
                                     "MinX", DoubleValue(0.0),
                                     "MinY", DoubleValue(0.0),
-                                    "DeltaX", DoubleValue(150.0),
+                                    "DeltaX", DoubleValue(100.0),
                                     "DeltaY", DoubleValue(0.0),
                                     "GridWidth", UintegerValue(4),
                                     "LayoutType", StringValue("RowFirst"));
 
     mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-    mobility.Install(staNodes.Get(0));
     mobility.Install(apNodes.Get(0));
-    mobility.Install(apNodes.Get(1));
+    mobility.Install(staNodes.Get(0));    
     mobility.Install(staNodes.Get(1));
+    mobility.Install(apNodes.Get(1));
 
-
+    /*
     Ptr<RangePropagationLossModel> propagationLossModel = CreateObject<RangePropagationLossModel>();
     propagationLossModel->SetAttribute("MaxRange", DoubleValue(200));
     Ptr<LogDistancePropagationLossModel> lossModel = CreateObject<LogDistancePropagationLossModel>();
     lossModel->SetAttribute("ReferenceDistance", DoubleValue (150));
     lossModel->SetAttribute("ReferenceLoss", DoubleValue (50));
     lossModel->SetNext(propagationLossModel);
+    */
+
+   Ptr<LogDistancePropagationLossModel> lossModel = CreateObject<LogDistancePropagationLossModel> ();
+    //log->SetAttribute("Exponent", DoubleValue(2.5));
+    lossModel->SetAttribute ("ReferenceDistance", DoubleValue (100));
+
 
 
 /*
@@ -91,7 +97,7 @@ int main(int argc, char *argv[]) {
     
     WifiHelper wifi;
     wifi.SetStandard (WIFI_STANDARD_80211a);
-    wifi.SetRemoteStationManager ("ns3::ArfWifiManager");
+    wifi.SetRemoteStationManager ("ns3::AarfWifiManager");
     
     WifiMacHelper mac;
     Ssid ssid = Ssid("spe-ssid");
@@ -120,8 +126,8 @@ int main(int argc, char *argv[]) {
     Address server2Address = InetSocketAddress(apWifiInterfaces.GetAddress(1), port);
 
     double simulationTime = 8.0;
-    double sendStart = 1.1;
-    double sendTime = 5.0;
+    //double sendStart = 1.1;
+    //double sendTime = 5.0;
 
     //server
     PacketSinkHelper sinkHelper1 ("ns3::UdpSocketFactory", server1Address);
@@ -135,6 +141,7 @@ int main(int argc, char *argv[]) {
     server2App.Start(Seconds(0));
     server2App.Stop(Seconds(simulationTime));
 
+/*
     //client
     OnOffHelper onOffHelper1 ("ns3::UdpSocketFactory", server1Address);
     onOffHelper1.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
@@ -148,21 +155,65 @@ int main(int argc, char *argv[]) {
     onOffHelper2.SetAttribute ("DataRate", StringValue (std::to_string(datarate)+"Mbps"));
     
     ApplicationContainer client1App = onOffHelper1.Install(staNodes.Get(0));
-    ApplicationContainer client2App = onOffHelper2.Install(staNodes.Get(1));
+    ApplicationContainer client2App = onOffHelper2.Install(staNodes.Get(1));*/
 
-    client1App.Start(Seconds(sendStart));
+    // 6. Install applications: two CBR streams
+      ApplicationContainer cbrApps;
+      OnOffHelper onOffHelper ("ns3::UdpSocketFactory", InetSocketAddress (apWifiInterfaces.GetAddress (0),12345));
+      OnOffHelper onOffHelper1 ("ns3::UdpSocketFactory", InetSocketAddress (apWifiInterfaces.GetAddress (1),12345));
+      onOffHelper.SetAttribute ("OnTime",  StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
+      onOffHelper.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
+      onOffHelper1.SetAttribute ("OnTime",  StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
+      onOffHelper1.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
+    
+      
+      
+          // Flow 1: n0 -> n2
+          onOffHelper.SetAttribute ("DataRate", StringValue (std::to_string(datarate)+"Mbps"));
+          onOffHelper.SetAttribute ("StartTime", TimeValue (Seconds (1.0)));
+          cbrApps.Add (onOffHelper.Install (staNodes.Get (0)));
+          
+          // Flow 2: n1 -> n3
+          onOffHelper1.SetAttribute ("DataRate", StringValue (std::to_string(datarate)+"Mbps"));
+          onOffHelper1.SetAttribute ("StartTime", TimeValue (Seconds (1.0))); //changed
+          cbrApps.Add (onOffHelper1.Install (staNodes.Get (1)));
+          
+          /*UdpEchoClientHelper client (apWifiInterfaces.GetAddress (0) , 9);
+          client.SetAttribute ("MaxPackets", UintegerValue (10));
+          client.SetAttribute ("Interval", TimeValue (Seconds (0.1)));
+          client.SetAttribute ("PacketSize", UintegerValue (1024)); //changed
+          ApplicationContainer pingApps;
+          
+          UdpEchoClientHelper client1 (apWifiInterfaces.GetAddress (1) , 9);
+          client1.SetAttribute ("MaxPackets", UintegerValue (5)); //changed
+          client1.SetAttribute ("Interval", TimeValue (Seconds (0.1)));
+          client1.SetAttribute ("PacketSize", UintegerValue (1024));
+          ApplicationContainer pingApps1;
+      
+      client.SetAttribute ("StartTime", TimeValue (Seconds (0)));
+      pingApps.Add (client.Install (staNodes.Get (0)));
+      
+      client1.SetAttribute ("StartTime", TimeValue (Seconds (0)));
+      pingApps1.Add (client1.Install (staNodes.Get (1)));
+
+    pingApps.Start(Seconds(sendStart));
+    pingApps.Stop(Seconds(sendStart + sendTime));
+    pingApps1.Start(Seconds(sendStart));
+    pingApps1.Stop(Seconds(sendStart + sendTime));
+*/
+    /*client1App.Start(Seconds(sendStart));
     client1App.Stop(Seconds(sendStart + sendTime));
     client2App.Start(Seconds(sendStart));
-    client2App.Stop(Seconds(sendStart + sendTime));
+    client2App.Stop(Seconds(sendStart + sendTime));*/
     
-    phy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
+    /*phy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
     phy.EnablePcap ("wifi-ap0", apDevices.Get(0));
     phy.EnablePcap ("wifi-ap1", apDevices.Get(1));
     phy.EnablePcap ("wifi-st0", staDevices.Get(0));
     phy.EnablePcap ("wifi-st1", staDevices.Get(1));
     
     AsciiTraceHelper ascii; 
-    phy.EnableAsciiAll (ascii.CreateFileStream ("wifi.tr"));
+    phy.EnableAsciiAll (ascii.CreateFileStream ("wifi.tr"));*/
 
     FlowMonitorHelper flowmon;
     Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
@@ -178,20 +229,18 @@ int main(int argc, char *argv[]) {
           std::cout << "Flow " << i->first << " (" << t.sourceAddress << " -> " << t.destinationAddress << ")\n";
           std::cout << "  Tx Packets: " << i->second.txPackets << "\n";
           std::cout << "  Tx Bytes:   " << i->second.txBytes << "\n";
-          std::cout << "  TxOffered:  " << i->second.txBytes * 8.0 / sendTime / 1000 / 1000  << " Mbps\n";
+          std::cout << "  TxOffered:  " << i->second.txBytes * 8.0 / 7.0 / 1000 / 1000  << " Mbps\n";
           std::cout << "  Rx Packets: " << i->second.rxPackets << "\n";
           std::cout << "  Rx Bytes:   " << i->second.rxBytes << "\n";
-          std::cout << "  Throughput: " << i->second.rxBytes * 8.0 / sendTime / 1000 / 1000  << " Mbps\n";
+          std::cout << "  Throughput: " << i->second.rxBytes * 8.0 / 7.0 / 1000 / 1000  << " Mbps\n";
           std::cout << "  Packet Loss Ratio: " << (i->second.txPackets - i->second.rxPackets)*100/(double)i->second.txPackets << " %\n";
       }  
       
-    /*
-    std::cout<<staNodes.Get(0)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;
+    
+    /*std::cout<<staNodes.Get(0)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;
     std::cout<<apNodes.Get(0)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;
     std::cout<<apNodes.Get(1)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;
-    std::cout<<staNodes.Get(1)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;
-    */
-    
+    std::cout<<staNodes.Get(1)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;*/
 
     Simulator::Destroy();
     return 0;
