@@ -45,7 +45,7 @@ for s in packetsizes:
 eta = 2.262
 n = 10
 
-fig, axes = plt.subplots(1, 2, figsize=(15, 7))
+fig, axes = plt.subplots(1, 2, figsize=(15, 6))
 fig.suptitle("Throughput", fontsize=20)
 for i in range(len(thrs)):
     axes[i % 2].set_title('TCP' if i == 0 else 'UDP')

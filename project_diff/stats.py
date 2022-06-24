@@ -123,10 +123,10 @@ for s in packetsizes:
 eta = 2.262
 n = 10
 
-fig, axes = plt.subplots(1, 2, figsize=(15, 7))
+fig, axes = plt.subplots(1, 2, figsize=(15, 6))
 fig.suptitle("Throughput", fontsize=20)
 for i in range(len(thrs)):
-    axes[i % 2].set_title('Hidden' if i == 0 else 'Exposed')
+    axes[i % 2].set_title('Limited range' if i == 0 else 'Full range')
     axes[i % 2].plot(datarates, thrs[i]
                      ['means1_t'], color='blue', label='STA-0 RTS/CTS')
     axes[i % 2].fill_between(datarates, y1=np.array(thrs[i]['means1_t']) - eta/math.sqrt(n) * np.array(
@@ -148,10 +148,10 @@ for i in range(len(thrs)):
     axes[i % 2].legend(loc="upper left")
 plt.savefig('throughput.png')
 
-fig, axes = plt.subplots(1, 2, figsize=(15, 7))
+fig, axes = plt.subplots(1, 2, figsize=(15, 6))
 fig.suptitle("Retransmission", fontsize=20)
 for i in range(len(rtrs)):
-    axes[i % 2].set_title('Hidden' if (i % 2) == 0 else 'Exposed')
+    axes[i % 2].set_title('Limited range' if (i % 2) == 0 else 'Full range')
     axes[i % 2].plot(datarates, rtrs[i]
                      ['means1_t'], color='blue', label='STA-0 RTS/CTS')
     axes[i % 2].fill_between(datarates, y1=np.array(rtrs[i]['means1_t']) - eta/math.sqrt(n) * np.array(

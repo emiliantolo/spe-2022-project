@@ -71,7 +71,7 @@ n = 10
 
 l = int(len(thrs) / 3 if len(thrs) % 3 == 0 else (len(thrs) // 3 + 1))
 
-fig, axes = plt.subplots(l, 3, figsize=(15, l * 5))
+fig, axes = plt.subplots(l, 3, figsize=(22.5, l * 6))
 for i in range(len(thrs)):
     axes[i // 3][i % 3].set_title('Range: ' + str(maxranges[i // len(
         maxranges)]) + ' m - ' + str(nstations[i % len(nstations)]) + ' mobile nodes')
@@ -92,7 +92,7 @@ plt.savefig('throughput.png')
 
 l = int(len(rtrs) / 3 if len(rtrs) % 3 == 0 else (len(rtrs) // 3 + 1))
 
-fig, axes = plt.subplots(l, 3, figsize=(15, l * 5))
+fig, axes = plt.subplots(l, 3, figsize=(22.5, l * 6))
 for i in range(len(rtrs)):
     axes[i // 3][i % 3].set_title('Range: ' + str(maxranges[i // len(
         maxranges)]) + ' m - ' + str(nstations[i % len(nstations)]) + ' mobile nodes')

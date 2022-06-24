@@ -129,9 +129,10 @@ rtrs.append({'means_t': list(means_t), 'stds_t': list(stds_t),
 eta = 2.262
 n = 10
 
-title = ['TCP hidden', 'UDP hidden', 'TCP exposed', 'UDP exposed']
+title = ['TCP - Limited range', 'UDP - Limited range',
+         'TCP - Full range', 'UDP - Full range']
 
-fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+fig, axes = plt.subplots(2, 2, figsize=(15, 12))
 fig.suptitle("Throughput", fontsize=20)
 for i in range(4):
     axes[i // 2][i % 2].set_title(title[i])
@@ -143,12 +144,14 @@ for i in range(4):
                              ['means_f'], color='red', label='No RTS/CTS')
     axes[i // 2][i % 2].fill_between(datarates, y1=np.array(thrs[i]['means_f']) - eta/math.sqrt(n) * np.array(
         thrs[0]['stds_f']), y2=np.array(thrs[i]['means_f']) + eta/math.sqrt(n) * np.array(thrs[i]['stds_f']), color='red', alpha=0.2)
+    axes[i // 2][i % 2].set_xlim([0, 42])
+    axes[i // 2][i % 2].set_ylim([0, 35])
     axes[i // 2][i % 2].set_xlabel('Offered [Mbps]')
     axes[i // 2][i % 2].set_ylabel('Throughput [Mbps]')
     axes[i // 2][i % 2].legend(loc="upper left")
 plt.savefig('throughput.png')
 
-fig, axes = plt.subplots(2, 2, figsize=(15, 10))
+fig, axes = plt.subplots(2, 2, figsize=(15, 12))
 fig.suptitle("Retransmission", fontsize=20)
 for i in range(4):
     axes[i // 2][i % 2].set_title(title[i])
@@ -160,6 +163,8 @@ for i in range(4):
                              ['means_f'], color='red', label='No RTS/CTS')
     axes[i // 2][i % 2].fill_between(datarates, y1=np.array(rtrs[i]['means_f']) - eta/math.sqrt(n) * np.array(
         rtrs[i]['stds_f']), y2=np.array(rtrs[i]['means_f']) + eta/math.sqrt(n) * np.array(rtrs[i]['stds_f']), color='red', alpha=0.2)
+    axes[i // 2][i % 2].set_xlim([0, 42])
+    axes[i // 2][i % 2].set_ylim([0, 4500])
     axes[i // 2][i % 2].set_xlabel('Offered [Mbps]')
     axes[i // 2][i % 2].set_ylabel('# Retry')
     axes[i // 2][i % 2].legend(loc="upper left")

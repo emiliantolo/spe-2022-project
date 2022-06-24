@@ -65,7 +65,8 @@ n = 10
 
 l = int(len(thrs) / 2 if len(thrs) % 2 == 0 else (len(thrs) // 2 + 1))
 
-fig, axes = plt.subplots(l, 2, figsize=(15, l * 5))
+fig, axes = plt.subplots(l, 2, figsize=(15, l * 6))
+fig.suptitle("Throughput", fontsize=20)
 for i in range(len(thrs)):
     axes[i // 2][i % 2].set_title('Packet size: ' + str(packetsizes[i]))
     axes[i // 2][i % 2].plot(datarates, thrs[i]
@@ -77,7 +78,7 @@ for i in range(len(thrs)):
     axes[i // 2][i % 2].fill_between(datarates, y1=np.array(thrs[i]['means_f']) - eta/math.sqrt(n) * np.array(
         thrs[i]['stds_f']), y2=np.array(thrs[i]['means_f']) + eta/math.sqrt(n) * np.array(thrs[i]['stds_f']), color='red', alpha=0.2)
     axes[i // 2][i % 2].set_xlim([0, 32])
-    axes[i // 2][i % 2].set_ylim([0, 32])
+    axes[i // 2][i % 2].set_ylim([0, 30])
     axes[i // 2][i % 2].set_xlabel('Offered [Mbps]')
     axes[i // 2][i % 2].set_ylabel('Throughput [Mbps]')
     axes[i // 2][i % 2].legend(loc="upper left")
@@ -85,7 +86,8 @@ plt.savefig('throughput.png')
 
 l = int(len(rtrs) / 2 if len(rtrs) % 2 == 0 else (len(rtrs) // 2 + 1))
 
-fig, axes = plt.subplots(l, 2, figsize=(15, l * 5))
+fig, axes = plt.subplots(l, 2, figsize=(15, l * 6))
+fig.suptitle("Retransmission", fontsize=20)
 for i in range(len(rtrs)):
     axes[i // 2][i % 2].set_title('Packet size: ' + str(packetsizes[i]))
     axes[i // 2][i % 2].plot(datarates, rtrs[i]
