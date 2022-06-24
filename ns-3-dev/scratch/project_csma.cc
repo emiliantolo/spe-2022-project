@@ -23,6 +23,7 @@ int main(int argc, char *argv[]) {
     bool verbose = true;
     double datarate = 1.0;
     int packetsize = 1000;
+    bool tcp = false;
 
     uint32_t csmaNum = 3;
 
@@ -31,6 +32,8 @@ int main(int argc, char *argv[]) {
     cmd.AddValue("verbose", "Enable logging", verbose);
     cmd.AddValue("datarate", "Data Rate Mbps", datarate);
     cmd.AddValue("packetsize", "Packet size", packetsize);
+    cmd.AddValue("tcp", "TCP protocol", tcp);
+
     cmd.Parse(argc, argv);
 
     Time::SetResolution(Time::NS);
@@ -44,7 +47,7 @@ int main(int argc, char *argv[]) {
 
     CsmaHelper csma;
     csma.SetChannelAttribute ("DataRate", StringValue ("100Mbps"));
-    csma.SetChannelAttribute ("Delay", TimeValue (NanoSeconds (6560)));
+    csma.SetChannelAttribute ("Delay", TimeValue (NanoSeconds (1000)));
     
     NetDeviceContainer csmaDevices;
     csmaDevices = csma.Install(csmaNodes);
@@ -64,14 +67,19 @@ int main(int argc, char *argv[]) {
     double sendStart = 1.1;
     double sendTime = 5.0;
 
+    std::string socketFactory = "ns3::UdpSocketFactory";
+    if (tcp) {
+        socketFactory = "ns3::TcpSocketFactory";
+    }
+
     //server
-    PacketSinkHelper sinkHelper ("ns3::UdpSocketFactory", serverAddress);
+    PacketSinkHelper sinkHelper (socketFactory, serverAddress);
     ApplicationContainer serverApp = sinkHelper.Install(csmaNodes.Get(0));
     serverApp.Start(Seconds(0));
     serverApp.Stop(Seconds(simulationTime));
 
     //client
-    OnOffHelper onOffHelper ("ns3::UdpSocketFactory", serverAddress);
+    OnOffHelper onOffHelper (socketFactory, serverAddress);
     onOffHelper.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
     onOffHelper.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
     onOffHelper.SetAttribute ("PacketSize", UintegerValue (packetsize));
@@ -81,14 +89,15 @@ int main(int argc, char *argv[]) {
     onOffHelper.SetAttribute ("StopTime", TimeValue (Seconds (sendStart + sendTime)));
     clientApps.Add(onOffHelper.Install(csmaNodes.Get(1)));
     clientApps.Add(onOffHelper.Install(csmaNodes.Get(2)));
-    
+
+/*
     csma.EnablePcap ("csma-s0", csmaDevices.Get(0));
     csma.EnablePcap ("csma-c0", csmaDevices.Get(1));
     csma.EnablePcap ("csma-c1", csmaDevices.Get(2));
     
     AsciiTraceHelper ascii; 
     csma.EnableAsciiAll (ascii.CreateFileStream ("csma.tr"));
-
+*/
     FlowMonitorHelper flowmon;
     Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
 
@@ -110,12 +119,6 @@ int main(int argc, char *argv[]) {
           std::cout << "  Packet Loss Ratio: " << (i->second.txPackets - i->second.rxPackets)*100/(double)i->second.txPackets << " %\n";
       }  
       
-    /*
-    std::cout<<apNodes.Get(0)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;
-    std::cout<<staNodes.Get(0)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;
-    std::cout<<staNodes.Get(1)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;
-    */
-
     Simulator::Destroy();
     return 0;
 }

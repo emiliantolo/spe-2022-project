@@ -76,8 +76,10 @@ for i in range(len(thrs)):
                              ['means_f'], color='red', label='No RTS/CTS')
     axes[i // 2][i % 2].fill_between(datarates, y1=np.array(thrs[i]['means_f']) - eta/math.sqrt(n) * np.array(
         thrs[i]['stds_f']), y2=np.array(thrs[i]['means_f']) + eta/math.sqrt(n) * np.array(thrs[i]['stds_f']), color='red', alpha=0.2)
-    axes[i // 2][i % 2].set_xlim([0, 30])
-    axes[i // 2][i % 2].set_ylim([0, 30])
+    axes[i // 2][i % 2].set_xlim([0, 32])
+    axes[i // 2][i % 2].set_ylim([0, 32])
+    axes[i // 2][i % 2].set_xlabel('Offered [Mbps]')
+    axes[i // 2][i % 2].set_ylabel('Throughput [Mbps]')
     axes[i // 2][i % 2].legend(loc="upper left")
 plt.savefig('throughput.png')
 
@@ -94,7 +96,9 @@ for i in range(len(rtrs)):
                              ['means_f'], color='red', label='No RTS/CTS')
     axes[i // 2][i % 2].fill_between(datarates, y1=np.array(rtrs[i]['means_f']) - eta/math.sqrt(n) * np.array(
         rtrs[i]['stds_f']), y2=np.array(rtrs[i]['means_f']) + eta/math.sqrt(n) * np.array(rtrs[i]['stds_f']), color='red', alpha=0.2)
-    axes[i // 2][i % 2].set_xlim([0, 30])
+    axes[i // 2][i % 2].set_xlim([0, 32])
     axes[i // 2][i % 2].set_ylim([0, 5000])
+    axes[i // 2][i % 2].set_xlabel('Offered [Mbps]')
+    axes[i // 2][i % 2].set_ylabel('# Retry')
     axes[i // 2][i % 2].legend(loc="upper left")
 plt.savefig('retry.png')

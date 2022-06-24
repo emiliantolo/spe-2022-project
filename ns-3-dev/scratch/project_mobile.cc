@@ -140,21 +140,12 @@ int main(int argc, char *argv[]) {
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
     
     phy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
-    phy.EnablePcap ("wifi-ap0", apDevices.Get(0));
+    //phy.EnablePcap ("wifi-ap0", apDevices.Get(0));
     
     for (int i = 0; i < staNum; i++) {
         phy.EnablePcap ("wifi-st"+std::to_string(i), staDevices.Get(i));
     }
-
-
-    //csma.EnablePcap ("csma-ap0", csmaDevices.Get(0));
-    //csma.EnablePcap ("csma-s0", csmaDevices.Get(1));
     
-    AsciiTraceHelper ascii; 
-    phy.EnableAsciiAll (ascii.CreateFileStream ("wifi.tr"));
-    
-    //csma.EnableAsciiAll (ascii.CreateFileStream ("csma.tr"));
-
     FlowMonitorHelper flowmon;
     Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
 
@@ -176,10 +167,6 @@ int main(int argc, char *argv[]) {
           std::cout << "  Packet Loss Ratio: " << (i->second.txPackets - i->second.rxPackets)*100/(double)i->second.txPackets << " %\n";
       }  
       
-    //std::cout<<apNodes.Get(0)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;
-    //std::cout<<staNodes.Get(0)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;
-    //std::cout<<staNodes.Get(1)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;
-
     Simulator::Destroy();
     return 0;
 }

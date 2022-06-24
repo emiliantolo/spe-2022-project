@@ -4,7 +4,7 @@ import pandas as pd
 import json
 import math
 
-f = open('./project_campaign_tcp/project_campaign_tcp.json', 'r')
+f = open('./project_campaign/project_campaign.json', 'r')
 data = json.load(f)
 
 df = pd.DataFrame(columns=['id', 'rtscts', 'hidden', 'tcp', 'datarate', 'packetsize',
@@ -12,18 +12,18 @@ df = pd.DataFrame(columns=['id', 'rtscts', 'hidden', 'tcp', 'datarate', 'packets
 
 for i in data['results']:
     id = data['results'][i]['meta']['id']
-    file = open('./project_campaign_tcp/data/' + id + '/stdout', 'r')
+    file = open('./project_campaign/data/' + id + '/stdout', 'r')
     lines = file.readlines()
     thr1 = float(lines[6].split(':')[1].split('Mbps')[0].strip())
     thr2 = float(lines[14].split(':')[1].split('Mbps')[0].strip())
-    count_file = open('./project_campaign_tcp/data/' +
+    count_file = open('./project_campaign/data/' +
                       id + '/count.txt', 'r')
     count_lines = count_file.readlines()
     retr = int(count_lines[0]) + int(count_lines[1])
     df.loc[len(df)] = [id] + list(data['results'][i]
                                   ['params'].values()) + [thr1 + thr2, retr]
 
-df.to_csv('stats_tcp.csv', sep='\t')
+df.to_csv('stats.csv', sep='\t')
 
 datarates = np.sort(df['datarate'].unique()) * 2
 
@@ -143,6 +143,8 @@ for i in range(4):
                              ['means_f'], color='red', label='No RTS/CTS')
     axes[i // 2][i % 2].fill_between(datarates, y1=np.array(thrs[i]['means_f']) - eta/math.sqrt(n) * np.array(
         thrs[0]['stds_f']), y2=np.array(thrs[i]['means_f']) + eta/math.sqrt(n) * np.array(thrs[i]['stds_f']), color='red', alpha=0.2)
+    axes[i // 2][i % 2].set_xlabel('Offered [Mbps]')
+    axes[i // 2][i % 2].set_ylabel('Throughput [Mbps]')
     axes[i // 2][i % 2].legend(loc="upper left")
 plt.savefig('throughput.png')
 
@@ -158,5 +160,7 @@ for i in range(4):
                              ['means_f'], color='red', label='No RTS/CTS')
     axes[i // 2][i % 2].fill_between(datarates, y1=np.array(rtrs[i]['means_f']) - eta/math.sqrt(n) * np.array(
         rtrs[i]['stds_f']), y2=np.array(rtrs[i]['means_f']) + eta/math.sqrt(n) * np.array(rtrs[i]['stds_f']), color='red', alpha=0.2)
+    axes[i // 2][i % 2].set_xlabel('Offered [Mbps]')
+    axes[i // 2][i % 2].set_ylabel('# Retry')
     axes[i // 2][i % 2].legend(loc="upper left")
 plt.savefig('retry.png')

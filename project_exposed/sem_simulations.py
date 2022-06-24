@@ -15,7 +15,7 @@ def main():
     param_combinations = {
         'rtscts': [True, False],
         'datarate': [1, 2.5, 5, 7.5, 10, 15],
-        'packetsize': [125, 250, 500, 750, 1000, 1500, 2000]
+        'packetsize': [125, 250, 500, 750, 1000, 2000]
     }
 
     campaign.run_missing_simulations(

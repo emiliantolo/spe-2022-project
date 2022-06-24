@@ -22,7 +22,7 @@ NS_LOG_COMPONENT_DEFINE("Project");
 int main(int argc, char *argv[]) {
     bool verbose = true;
     bool rtscts = true;
-    bool hidden = false;
+    bool hidden = true;
     bool tcp = false;
     double datarate = 1.0;
     int packetsize = 1000;
@@ -144,13 +144,10 @@ int main(int argc, char *argv[]) {
     clientApps.Add(onOffHelper.Install(staNodes.Get(1)));
     
     phy.SetPcapDataLinkType (WifiPhyHelper::DLT_IEEE802_11_RADIO);
-    phy.EnablePcap ("wifi-ap0", apDevices.Get(0));
+    //phy.EnablePcap ("wifi-ap0", apDevices.Get(0));
     phy.EnablePcap ("wifi-st0", staDevices.Get(0));
     phy.EnablePcap ("wifi-st1", staDevices.Get(1));
     
-    AsciiTraceHelper ascii; 
-    phy.EnableAsciiAll (ascii.CreateFileStream ("wifi.tr"));
-
     FlowMonitorHelper flowmon;
     Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
 
@@ -172,12 +169,6 @@ int main(int argc, char *argv[]) {
           std::cout << "  Packet Loss Ratio: " << (i->second.txPackets - i->second.rxPackets)*100/(double)i->second.txPackets << " %\n";
       }  
       
-    /*
-    std::cout<<apNodes.Get(0)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;
-    std::cout<<staNodes.Get(0)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;
-    std::cout<<staNodes.Get(1)->GetObject<MobilityModel>()->GetPosition().x<<std::endl;
-    */
-
     Simulator::Destroy();
     return 0;
 }

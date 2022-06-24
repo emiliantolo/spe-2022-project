@@ -5,9 +5,8 @@
 #!scratch-simulator.cc
 !project_hidden.cc
 !project_exposed.cc
-!project_exposed_four2.cc
-!project_exposed_diff.cc
+!project_four.cc
+!project_diff.cc
 !project_tcp.cc
 !project_csma.cc
 !project_mobile.cc
-!HW5_definitivo.cc
