@@ -8,7 +8,7 @@
 - **project_*/**
   - **sem_simulations_py** - simulations runs script
   - **count.sh** - pcap reading and retransmission count
-  - **retry_count** - execute counts for every run
+  - **retry_count.sh** - execute counts for every run
   - **stats.py** - generate stats from runs
   - **throughput.png** - throughput graphs
   - **retry.png** - retransmission graphs
